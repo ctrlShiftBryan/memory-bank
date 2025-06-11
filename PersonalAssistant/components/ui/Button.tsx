@@ -16,6 +16,7 @@ export function Button({
   disabled,
   children,
   className,
+  style,
   ...props
 }: ButtonProps) {
   const variants = {
@@ -46,6 +47,15 @@ export function Button({
 
   return (
     <TouchableOpacity
+      style={[
+        {
+          borderRadius: 8,
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: disabled ? 0.5 : 1,
+        },
+        style
+      ]}
       className={clsx(
         "rounded-lg items-center justify-center",
         variants[variant],
