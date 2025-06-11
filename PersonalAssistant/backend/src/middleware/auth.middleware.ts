@@ -16,12 +16,13 @@ export async function authenticateToken(
   req: AuthRequest,
   res: Response,
   next: NextFunction
-) {
+): Promise<void> {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
 
   if (!token) {
-    return res.status(401).json({ error: "Access token required" });
+    res.status(401).json({ error: "Access token required" });
+    return;
   }
 
   try {
@@ -29,6 +30,7 @@ export async function authenticateToken(
     req.user = { id: payload.userId };
     next();
   } catch (error) {
-    return res.status(403).json({ error: "Invalid or expired token" });
+    res.status(403).json({ error: "Invalid or expired token" });
+    return;
   }
 }

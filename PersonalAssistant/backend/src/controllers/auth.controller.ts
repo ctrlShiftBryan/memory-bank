@@ -8,12 +8,13 @@ const router = Router();
 const authService = new AuthService();
 
 // Register
-router.post("/register", async (req: Request, res: Response) => {
+router.post("/register", async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password, name } = req.body;
 
     if (!email || !password || !name) {
-      return res.status(400).json({ error: "All fields are required" });
+      res.status(400).json({ error: "All fields are required" });
+      return;
     }
 
     // Check if user exists
@@ -24,7 +25,8 @@ router.post("/register", async (req: Request, res: Response) => {
       .limit(1);
 
     if (existingUser.length > 0) {
-      return res.status(400).json({ error: "User already exists" });
+      res.status(400).json({ error: "User already exists" });
+      return;
     }
 
     // Hash password
@@ -58,12 +60,13 @@ router.post("/register", async (req: Request, res: Response) => {
 });
 
 // Login
-router.post("/login", async (req: Request, res: Response) => {
+router.post("/login", async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: "Email and password required" });
+      res.status(400).json({ error: "Email and password required" });
+      return;
     }
 
     // Find user
@@ -74,7 +77,8 @@ router.post("/login", async (req: Request, res: Response) => {
       .limit(1);
 
     if (!user) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
     }
 
     // Verify password
@@ -84,7 +88,8 @@ router.post("/login", async (req: Request, res: Response) => {
     );
 
     if (!isValidPassword) {
-      return res.status(401).json({ error: "Invalid credentials" });
+      res.status(401).json({ error: "Invalid credentials" });
+      return;
     }
 
     // Generate tokens
@@ -105,12 +110,13 @@ router.post("/login", async (req: Request, res: Response) => {
 });
 
 // Refresh token
-router.post("/refresh", async (req: Request, res: Response) => {
+router.post("/refresh", async (req: Request, res: Response): Promise<void> => {
   try {
     const { refreshToken } = req.body;
 
     if (!refreshToken) {
-      return res.status(400).json({ error: "Refresh token required" });
+      res.status(400).json({ error: "Refresh token required" });
+      return;
     }
 
     const tokens = await authService.refreshTokens(refreshToken);

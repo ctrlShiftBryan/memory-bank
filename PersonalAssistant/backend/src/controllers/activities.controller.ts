@@ -8,21 +8,22 @@ import { db } from "../config/database";
 import { activities, aiSummaries } from "../db/schema";
 import { and, eq, gte, lte } from "drizzle-orm";
 import { config } from "../config/env";
-import multer from "multer";
+// import multer from "multer";
 
 const router = Router();
 router.use(authenticateToken);
 
 // Configure multer for file uploads
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 50 * 1024 * 1024, // 50MB limit
-  },
-});
+// Configure multer for file uploads (unused but keeping for future use)
+// const upload = multer({
+//   storage: multer.memoryStorage(),
+//   limits: {
+//     fileSize: 50 * 1024 * 1024, // 50MB limit
+//   },
+// });
 
 // Sync all activities
-router.post("/sync", async (req: AuthRequest, res: Response) => {
+router.post("/sync", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
 
@@ -61,7 +62,7 @@ router.post("/sync", async (req: AuthRequest, res: Response) => {
 });
 
 // YouTube OAuth endpoints
-router.get("/youtube/auth", async (req: AuthRequest, res: Response) => {
+router.get("/youtube/auth", async (_req: AuthRequest, res: Response): Promise<void> => {
   try {
     const youtubeService = new YouTubePlaylistService();
     const authUrl = youtubeService.getAuthUrl();
@@ -71,11 +72,12 @@ router.get("/youtube/auth", async (req: AuthRequest, res: Response) => {
   }
 });
 
-router.post("/youtube/token", async (req: AuthRequest, res: Response) => {
+router.post("/youtube/token", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { code } = req.body;
     if (!code) {
-      return res.status(400).json({ error: "Authorization code required" });
+      res.status(400).json({ error: "Authorization code required" });
+      return;
     }
 
     const youtubeService = new YouTubePlaylistService();
@@ -88,11 +90,12 @@ router.post("/youtube/token", async (req: AuthRequest, res: Response) => {
 });
 
 // Add video to tracking playlist
-router.post("/youtube/track", async (req: AuthRequest, res: Response) => {
+router.post("/youtube/track", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { videoId, tokens } = req.body;
     if (!videoId || !tokens) {
-      return res.status(400).json({ error: "Video ID and tokens required" });
+      res.status(400).json({ error: "Video ID and tokens required" });
+      return;
     }
 
     const userId = req.user!.id;
@@ -109,7 +112,7 @@ router.post("/youtube/track", async (req: AuthRequest, res: Response) => {
 });
 
 // Generate AI summary
-router.post("/summary", async (req: AuthRequest, res: Response) => {
+router.post("/summary", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { date = new Date() } = req.body;
     const userId = req.user!.id;
@@ -133,10 +136,11 @@ router.post("/summary", async (req: AuthRequest, res: Response) => {
       );
 
     if (dayActivities.length === 0) {
-      return res.json({
+      res.json({
         message: "No activities found for this date",
         summary: null,
       });
+      return;
     }
 
     // Generate summary
@@ -163,26 +167,26 @@ router.post("/summary", async (req: AuthRequest, res: Response) => {
 });
 
 // Get activities for a date range
-router.get("/", async (req: AuthRequest, res: Response) => {
+router.get("/", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
     const { startDate, endDate } = req.query;
 
-    let query = db
-      .select()
-      .from(activities)
-      .where(eq(activities.userId, userId));
+    // Removed unused query variable
 
+    const conditions = [eq(activities.userId, userId)];
+    
     if (startDate && endDate) {
-      query = query.where(
-        and(
-          gte(activities.timestamp, new Date(startDate as string)),
-          lte(activities.timestamp, new Date(endDate as string))
-        )
+      conditions.push(
+        gte(activities.timestamp, new Date(startDate as string)),
+        lte(activities.timestamp, new Date(endDate as string))
       );
     }
 
-    const userActivities = await query;
+    const userActivities = await db
+      .select()
+      .from(activities)
+      .where(and(...conditions));
     res.json(userActivities);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -190,7 +194,7 @@ router.get("/", async (req: AuthRequest, res: Response) => {
 });
 
 // Get AI summaries
-router.get("/summaries", async (req: AuthRequest, res: Response) => {
+router.get("/summaries", async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const userId = req.user!.id;
     const summaries = await db
