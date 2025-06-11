@@ -10,7 +10,9 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:db:init": "tsx scripts/init-test-db.ts",
+    "dev:test": "NODE_ENV=test tsx watch src/app.ts"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +21,9 @@
   "dependencies": {
     "@azure/identity": "^4.10.0",
     "@octokit/rest": "^22.0.0",
+    "@types/bcryptjs": "^3.0.0",
     "bcrypt": "^6.0.0",
+    "bcryptjs": "^3.0.2",
     "compression": "^1.8.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
@@ -37,6 +41,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/compression": "^1.8.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
     "@types/jsonwebtoken": "^9.0.9",
