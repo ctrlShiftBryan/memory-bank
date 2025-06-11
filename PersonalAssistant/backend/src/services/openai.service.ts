@@ -30,9 +30,7 @@ export class OpenAIService {
     this.client = new AzureOpenAI({
       azureADTokenProvider,
       apiVersion: "2024-10-21",
-      azure: {
-        endpoint: config.AZURE_OPENAI_ENDPOINT,
-      },
+      endpoint: config.AZURE_OPENAI_ENDPOINT,
     });
   }
 

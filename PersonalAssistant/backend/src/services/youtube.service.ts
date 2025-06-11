@@ -48,7 +48,7 @@ export class YouTubePlaylistService {
   }
 
   // Create a "Watch History" playlist if it doesn't exist
-  async ensureWatchHistoryPlaylist(userId: string): Promise<string> {
+  async ensureWatchHistoryPlaylist(_userId: string): Promise<string> {
     try {
       // First, check if playlist already exists
       const playlistsResponse = await this.youtube.playlists.list({

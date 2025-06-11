@@ -24,18 +24,20 @@ export class GitHubService {
       const processedActivities = events.map((event) => ({
         userId,
         sourceId: "github-source-id",
-        type: event.type,
+        type: event.type || "unknown",
         title: this.generateTitle(event),
         description: this.generateDescription(event),
         metadata: {
           repo: event.repo.name,
           payload: event.payload,
         },
-        timestamp: new Date(event.created_at),
+        timestamp: event.created_at ? new Date(event.created_at) : new Date(),
       }));
 
-      // Batch insert activities
-      await db.insert(activities).values(processedActivities);
+      // Batch insert activities if there are any
+      if (processedActivities.length > 0) {
+        await db.insert(activities).values(processedActivities);
+      }
 
       return processedActivities;
     } catch (error) {

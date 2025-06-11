@@ -1,9 +1,7 @@
 import * as path from "path";
 import * as fs from "fs/promises";
-import { createHash } from "crypto";
 import { db } from "../config/database";
 import { activities } from "../db/schema";
-import { config } from "../config/env";
 
 interface ProjectInfo {
   name: string;
@@ -52,7 +50,9 @@ export class FileSystemService {
       }
     }
 
-    await db.insert(activities).values(projects);
+    if (projects.length > 0) {
+      await db.insert(activities).values(projects);
+    }
     return projects;
   }
 

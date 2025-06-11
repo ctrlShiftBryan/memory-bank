@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, ScrollView, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
-import { useActivityStore } from "@/stores/activityStore";
-import { ActivitySummary } from "@/components/ActivitySummary";
-import { ActivitySourceCard } from "@/components/ActivitySourceCard";
+import { Button } from "../../components/ui/Button";
+import { Card } from "../../components/ui/Card";
+import { useActivityStore } from "../../stores/activityStore";
+import { ActivitySummary } from "../../components/ActivitySummary";
+import { ActivitySourceCard } from "../../components/ActivitySourceCard";
+import { useToast } from "../../contexts/ToastContext";
 
 export default function DashboardScreen() {
-  const { activities, summary, loading, fetchActivities, generateSummary, syncActivities } = useActivityStore();
+  const { activities, summary, loading, error, fetchActivities, generateSummary, syncActivities } = useActivityStore();
   const [refreshing, setRefreshing] = useState(false);
+  const { showToast } = useToast();
 
   useEffect(() => {
     fetchActivities();
   }, []);
+
+  useEffect(() => {
+    if (error) {
+      showToast(error, 'error');
+    }
+  }, [error]);
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -23,10 +31,14 @@ export default function DashboardScreen() {
 
   const handleSync = async () => {
     await syncActivities();
+    showToast('Activities synced successfully', 'success');
   };
 
   const handleGenerateSummary = async () => {
     await generateSummary();
+    if (!error) {
+      showToast('Summary generated successfully', 'success');
+    }
   };
 
   return (
@@ -51,22 +63,24 @@ export default function DashboardScreen() {
           </Text>
         </View>
 
-        <View className="flex-row space-x-2 mb-6">
-          <Button
-            onPress={handleSync}
-            loading={loading}
-            className="flex-1"
-          >
-            Sync Activities
-          </Button>
-          <Button
-            onPress={handleGenerateSummary}
-            loading={loading}
-            variant="secondary"
-            className="flex-1"
-          >
-            Generate Summary
-          </Button>
+        <View style={{ flexDirection: 'row', gap: 8, marginBottom: 24 }}>
+          <View style={{ flex: 1 }}>
+            <Button
+              onPress={handleSync}
+              loading={loading}
+            >
+              Sync Activities
+            </Button>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button
+              onPress={handleGenerateSummary}
+              loading={loading}
+              variant="secondary"
+            >
+              Generate Summary
+            </Button>
+          </View>
         </View>
 
         {summary && (
@@ -75,7 +89,7 @@ export default function DashboardScreen() {
           </Card>
         )}
 
-        <View className="space-y-4">
+        <View style={{ gap: 16 }}>
           <ActivitySourceCard
             title="GitHub Activity"
             count={activities.github?.length || 0}
