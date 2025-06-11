@@ -1,0 +1,35 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: personal_assistant
+      POSTGRES_USER: ${DB_USER:-pguser}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-pgpassword}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app_network
+    ports:
+      - "5432:5432"
+
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql://${DB_USER:-pguser}:${DB_PASSWORD:-pgpassword}@postgres:5432/personal_assistant
+      NODE_ENV: production
+    depends_on:
+      - postgres
+    ports:
+      - "3000:3000"
+    networks:
+      - app_network
+    volumes:
+      - ${CLAUDE_PROJECTS_PATH:-./projects}:/projects:ro
+
+volumes:
+  postgres_data:
+
+networks:
+  app_network:
