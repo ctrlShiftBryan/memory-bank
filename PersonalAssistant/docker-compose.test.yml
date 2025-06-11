@@ -1,0 +1,53 @@
+version: "3.8"
+
+services:
+  postgres-test:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: personal_assistant_test
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpassword
+    ports:
+      - "5437:5432"
+    networks:
+      - test_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U testuser -d personal_assistant_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend-test:
+    image: node:20-alpine
+    working_dir: /app
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+    environment:
+      DATABASE_URL: postgresql://testuser:testpassword@postgres-test:5432/personal_assistant_test
+      NODE_ENV: test
+      PORT: 3003
+      JWT_SECRET: test-jwt-secret-key
+      JWT_REFRESH_SECRET: test-jwt-refresh-secret-key
+      AZURE_OPENAI_ENDPOINT: https://test.openai.azure.com/
+      AZURE_OPENAI_DEPLOYMENT_NAME: test-deployment
+      GITHUB_CLIENT_ID: test-github-client-id
+      GITHUB_CLIENT_SECRET: test-github-client-secret
+      YOUTUBE_CLIENT_ID: test-youtube-client-id
+      YOUTUBE_CLIENT_SECRET: test-youtube-client-secret
+      YOUTUBE_REDIRECT_URI: http://localhost:3003/api/activities/youtube/callback
+      CLAUDE_PROJECTS_PATH: /tmp/test-projects
+      CORS_ORIGIN: http://localhost:8081
+      SESSION_SECRET: test-session-secret
+    depends_on:
+      postgres-test:
+        condition: service_healthy
+    ports:
+      - "3003:3003"
+    networks:
+      - test_network
+    command: sh -c "npm install && npm run dev"
+
+networks:
+  test_network:
+    driver: bridge
